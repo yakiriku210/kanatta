@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>kanatta — 那須の恵みを、大切に込めて。</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300;1,400&family=Noto+Serif+JP:wght@200;300;400&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    /* CSS変数はJSがスクロールに合わせてリアルタイムで書き換える */
+    :root {
+      --ivory: #FDE8EE;
+      --ecru:  #F8C8D8;
+      --honey: #D04070;
+      --sage:  #5EA87A;
+      --deep:  #300818;
+      --mid:   #A02858;
+      --light: #E080A0;
+      --season-base: #FDE8EE;
+    }
+
+    /* 季節バッジ */
+    .season-badge {
+      position: fixed; bottom: 24px; right: 24px; z-index: 200;
+      font-family: 'Cormorant Garamond', serif; font-style: italic;
+      font-size: 11px; letter-spacing: .28em; color: var(--honey);
+      opacity: 0; pointer-events: none;
+      transition: opacity .6s;
+    }
+    .season-badge.visible { opacity: .65; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { background: transparent; color: var(--deep); font-family: 'Noto Sans JP', sans-serif; font-weight: 300; overflow-x: hidden; }
+
+    /* NAV */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 24px 48px; display: flex; justify-content: space-between; align-items: center; transition: background .4s, padding .4s; }
+    nav.scrolled { background: rgba(247,242,231,.95); backdrop-filter: blur(8px); padding: 16px 48px; border-bottom: 1px solid rgba(184,137,58,.15); }
+    .nav-logo { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 22px; font-weight: 300; color: var(--deep); letter-spacing: .05em; text-decoration: none; }
+    .nav-links { display: flex; gap: 36px; list-style: none; }
+    .nav-links a { font-family: 'Noto Serif JP', serif; font-size: 12px; font-weight: 300; color: var(--mid); text-decoration: none; letter-spacing: .15em; transition: color .3s; }
+    .nav-links a:hover { color: var(--honey); }
+    /* hamburger */
+    .nav-brand { display: flex; align-items: center; gap: 14px; }
+    .nav-instagram { display: flex; align-items: center; color: var(--light); transition: color .3s; opacity: .8; }
+    .nav-instagram:hover { color: var(--honey); opacity: 1; }
+    .nav-instagram svg { width: 15px; height: 15px; }
+    .nav-toggle { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; background: none; border: none; }
+    .nav-toggle span { width: 22px; height: 1px; background: var(--deep); transition: all .3s; display: block; }
+    .nav-toggle.open span:nth-child(1) { transform: rotate(45deg) translate(4px, 4px); }
+    .nav-toggle.open span:nth-child(2) { opacity: 0; }
+    .nav-toggle.open span:nth-child(3) { transform: rotate(-45deg) translate(4px, -4px); }
+    .nav-drawer { display: none; position: fixed; inset: 0; background: rgba(247,242,231,.97); backdrop-filter: blur(12px); z-index: 99; flex-direction: column; align-items: center; justify-content: center; gap: 40px; }
+    .nav-drawer.open { display: flex; }
+    .nav-drawer a { font-family: 'Noto Serif JP', serif; font-size: 15px; font-weight: 300; color: var(--mid); text-decoration: none; letter-spacing: .25em; }
+
+    /* ── 陽だまりの呼吸：kanatta ベースアニメーション ── */
+    :root { --season-base: #F7F2E7; }
+    .kanatta-breath {
+      position: fixed; inset: 0; z-index: -1;
+      background: var(--season-base);
+      transition: background-color 1.4s cubic-bezier(.4,0,.2,1);
+      pointer-events: none;
+    }
+    /* 光だまりはJSが位置・opacity・サイズを毎フレーム更新する */
+    .breath-pool { position: absolute; inset: 0; will-change: background, opacity; }
+
+    /* セクション：季節とともに色が変わる */
+    .hero       { height: 100vh; min-height: 600px; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; background: transparent; }
+    .concept-bg { background: var(--ecru)  !important; }
+    .story-bg   { background: var(--deep)  !important; }
+    .contact-bg { background: var(--ecru)  !important; }
+    .sec        { background: var(--ivory); }
+    footer      { background: var(--ivory); }
+    .hero-grain { position: absolute; inset: 0; opacity: .35; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E"); }
+
+    .herb { position: absolute; bottom: 0; opacity: .3; }
+    .herb-l { left: 5%; transform-origin: bottom center; animation: swayL 7s ease-in-out infinite; }
+    .herb-r { right: 5%; transform-origin: bottom center; animation: swayR 8s ease-in-out infinite; }
+    @keyframes swayL { 0%,100%{transform:rotate(-2deg)} 50%{transform:rotate(3deg)} }
+    @keyframes swayR { 0%,100%{transform:rotate(2deg)} 50%{transform:rotate(-3.5deg)} }
+
+    .hero-content { text-align: center; z-index: 1; padding: 0 24px; }
+    .hero-en { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 13px; font-weight: 300; color: var(--honey); letter-spacing: .3em; text-transform: uppercase; display: block; margin-bottom: 20px; }
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif; font-style: italic;
+      font-size: clamp(72px, 11vw, 128px); font-weight: 300;
+      letter-spacing: .06em; line-height: 1; margin-bottom: 32px;
+      color: var(--deep);
+    }
+    .hero-catch { font-family: 'Noto Serif JP', serif; font-size: clamp(14px, 1.8vw, 18px); font-weight: 300; color: var(--mid); letter-spacing: .22em; line-height: 2.2; }
+    .hero-line { width: 1px; height: 56px; background: linear-gradient(to bottom, var(--honey), transparent); margin: 48px auto 0; }
+
+    .scroll-hint { position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .scroll-hint span { font-size: 10px; letter-spacing: .3em; color: var(--light); }
+    .scroll-arrow { width: 1px; height: 40px; background: linear-gradient(to bottom, transparent, var(--honey)); animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:.4;transform:scaleY(.7)} 50%{opacity:1;transform:scaleY(1)} }
+
+    /* SECTION共通 */
+    .sec { padding: 110px 48px; max-width: 900px; margin: 0 auto; }
+    .sec-label { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 12px; letter-spacing: .35em; color: var(--honey); text-transform: uppercase; display: block; margin-bottom: 14px; }
+    .sec-title { font-family: 'Noto Serif JP', serif; font-size: clamp(26px, 4vw, 38px); font-weight: 300; letter-spacing: .05em; color: var(--deep); margin-bottom: 40px; line-height: 1.6; }
+    .sec-rule { width: 36px; height: 1px; background: var(--honey); margin-bottom: 44px; }
+
+    /* ── REVEAL：朝もやが晴れるように、じわっと浮かび上がる ── */
+    .r {
+      opacity: 0;
+      filter: blur(10px);
+      transform: translateY(15px);
+      transition:
+        opacity   1.3s cubic-bezier(.16,1,.3,1),
+        filter    1.5s cubic-bezier(.16,1,.3,1),
+        transform 1.3s cubic-bezier(.16,1,.3,1);
+    }
+    .r.on {
+      opacity: 1;
+      filter: blur(0px);
+      transform: translateY(0);
+    }
+
+    /* CONCEPT */
+    .concept-bg { background: var(--ecru); }
+    .concept-grid { max-width: 900px; margin: 0 auto; padding: 110px 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: center; }
+    .concept-text p { font-size: 14px; line-height: 2.7; color: var(--mid); letter-spacing: .06em; }
+    .concept-img { aspect-ratio: 4/5; background: linear-gradient(150deg, #E8DFC8 0%, #D4C9A8 25%, #B8A882 50%, #C8BC98 75%, #DDD4B8 100%); border-radius: 2px; position: relative; overflow: hidden; }
+    .concept-img::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 40% 30%, rgba(255,245,220,.45) 0%, transparent 60%), radial-gradient(ellipse at 80% 70%, rgba(180,155,100,.3) 0%, transparent 50%); }
+    .concept-img::after { content: 'photo'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'Cormorant Garamond',serif; font-style: italic; font-size: 12px; letter-spacing: .2em; color: rgba(255,255,255,.5); }
+
+    /* MENU */
+    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-top: 44px; }
+    .menu-card { padding: 36px; background: var(--ecru); transition: background .3s; }
+    .menu-card:hover { background: #E6DEC9; }
+    .menu-cat { font-family: 'Cormorant Garamond',serif; font-style: italic; font-size: 11px; letter-spacing: .25em; color: var(--honey); display: block; margin-bottom: 10px; }
+    .menu-name { font-family: 'Noto Serif JP',serif; font-size: 17px; font-weight: 400; color: var(--deep); margin-bottom: 8px; }
+    .menu-desc { font-size: 12px; line-height: 2; color: var(--light); }
+    .menu-price { font-family: 'Cormorant Garamond',serif; font-size: 15px; color: var(--mid); margin-top: 14px; display: block; }
+
+    /* STORY */
+    .story-bg { background: var(--deep); }
+    .story-inner { max-width: 900px; margin: 0 auto; padding: 110px 48px; }
+    .story-bg .sec-title { color: var(--ecru); }
+    .story-bg .sec-rule { background: var(--honey); }
+    .story-quote { font-family: 'Noto Serif JP',serif; font-size: clamp(16px, 2.5vw, 24px); font-weight: 300; color: var(--ecru); letter-spacing: .1em; line-height: 2.2; border-left: 2px solid var(--honey); padding-left: 28px; margin: 52px 0; }
+    .story-inner p { font-size: 14px; line-height: 2.9; color: rgba(237,229,210,.65); letter-spacing: .06em; max-width: 580px; }
+
+    /* GALLERY */
+    .gallery-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 220px 220px; gap: 4px; margin-top: 44px; }
+    .gal-item { overflow: hidden; position: relative; }
+    .gal-item:nth-child(1) { background: linear-gradient(145deg, #C8BFA0 0%, #A8996E 40%, #BFB48C 70%, #D4CAA8 100%); }
+    .gal-item:nth-child(2) { background: linear-gradient(120deg, #D8D0B4 0%, #C0B48C 50%, #A89870 100%); }
+    .gal-item:nth-child(3) { background: linear-gradient(170deg, #8B9E7A 0%, #6E8460 40%, #9AAF88 80%, #B8CAAА 100%); }
+    .gal-item:nth-child(4) { background: linear-gradient(130deg, #E0D8C0 0%, #C8BE9A 45%, #B4A878 100%); }
+    .gal-item:nth-child(5) { background: linear-gradient(150deg, #D0C8A8 0%, #B8AC80 50%, #CEC4A0 100%); }
+    .gal-item::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 35% 40%, rgba(255,250,235,.3) 0%, transparent 55%); }
+    .gal-item::after { content:''; position:absolute; inset:0; background:rgba(44,36,24,0); transition:background .4s; }
+    .gal-item:hover::after { background:rgba(44,36,24,.12); }
+    .gal-item:first-child { grid-row: 1/3; }
+
+    /* ACCESS */
+    .access-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: start; margin-top: 0; }
+    .access-map { aspect-ratio: 1; background: var(--ecru); border-radius: 2px; display: flex; align-items: center; justify-content: center; color: var(--light); font-family: 'Cormorant Garamond',serif; font-style: italic; font-size: 12px; letter-spacing: .2em; }
+    .access-dl dt { font-family: 'Cormorant Garamond',serif; font-style: italic; font-size: 11px; letter-spacing: .25em; color: var(--honey); margin-bottom: 6px; margin-top: 28px; }
+    .access-dl dt:first-child { margin-top: 0; }
+    .access-dl dd { font-size: 14px; line-height: 2; color: var(--mid); }
+
+    /* CONTACT */
+    .contact-bg { background: var(--ecru); }
+    .contact-inner { max-width: 580px; margin: 0 auto; padding: 110px 48px; text-align: center; }
+    .contact-inner .sec-rule { margin: 0 auto 44px; }
+    .form { display: flex; flex-direction: column; gap: 20px; margin-top: 40px; text-align: left; }
+    .fg label { font-size: 11px; letter-spacing: .2em; color: var(--light); display: block; margin-bottom: 8px; }
+    .fg input, .fg textarea, .fg select { width: 100%; padding: 13px 0; background: transparent; border: none; border-bottom: 1px solid rgba(44,36,24,.18); font-family: 'Noto Sans JP',sans-serif; font-size: 14px; font-weight: 300; color: var(--deep); outline: none; transition: border-color .3s; appearance: none; }
+    .fg input:focus, .fg textarea:focus, .fg select:focus { border-bottom-color: var(--honey); }
+    .fg textarea { resize: none; height: 88px; }
+    .send-btn { margin: 40px auto 0; padding: 17px 60px; background: transparent; border: 1px solid var(--deep); font-family: 'Noto Serif JP',serif; font-size: 13px; font-weight: 300; letter-spacing: .25em; color: var(--deep); cursor: pointer; transition: all .35s; display: block; }
+    .send-btn:hover { background: var(--deep); color: var(--ivory); }
+
+    /* FOOTER */
+    footer { padding: 56px 48px; text-align: center; border-top: 1px solid rgba(44,36,24,.07); }
+    .ft-logo { font-family: 'Cormorant Garamond',serif; font-style: italic; font-size: 30px; font-weight: 300; color: var(--deep); letter-spacing: .05em; display: block; margin-bottom: 22px; }
+    .ft-sns { display: flex; justify-content: center; gap: 32px; margin-bottom: 36px; }
+    .ft-sns a { font-family: 'Cormorant Garamond',serif; font-style: italic; font-size: 13px; letter-spacing: .2em; color: var(--mid); text-decoration: none; transition: color .3s; }
+    .ft-sns a:hover { color: var(--honey); }
+    .ft-copy { font-size: 11px; letter-spacing: .15em; color: var(--light); }
+
+
+    @media(max-width:768px){
+      nav { padding: 18px 20px; }
+      .nav-links { display: none; }
+      .nav-toggle { display: flex; }
+      .concept-grid,.access-grid { grid-template-columns:1fr; gap:36px; padding:64px 20px; }
+      .sec { padding: 64px 20px; }
+      .sec-title { font-size: clamp(22px, 6vw, 32px); margin-bottom: 28px; }
+      .menu-grid { grid-template-columns:1fr; gap:2px; }
+      .menu-card { padding: 28px 20px; }
+      .gallery-grid { grid-template-columns:1fr 1fr; grid-template-rows:140px 140px 140px; }
+      .gal-item:first-child { grid-row:auto; }
+      .story-inner { padding: 64px 20px; }
+      .story-quote { font-size: 15px; padding-left: 20px; margin: 36px 0; }
+      .contact-inner { padding: 64px 20px; }
+      .hero-title { font-size: clamp(52px, 14vw, 80px); }
+      .hero-catch { font-size: 13px; letter-spacing: .15em; }
+      .herb { display: none; }
+      footer { padding: 40px 20px; }
+      .access-grid { gap: 28px; }
+      .access-map { aspect-ratio: 4/3; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 花びらキャンバス -->
+<canvas id="petalCanvas" style="position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:2;"></canvas>
+
+<!-- 陽だまりの呼吸：kanatta ベースアニメーション -->
+<div class="kanatta-breath" aria-hidden="true">
+  <div class="breath-pool pool-a"></div>
+  <div class="breath-pool pool-b"></div>
+  <div class="breath-pool pool-c"></div>
+</div>
+
+<nav id="nav">
+  <div class="nav-brand">
+    <a href="#" class="nav-logo">kanatta</a>
+    <a href="https://www.instagram.com/kanatta_nasu/" target="_blank" rel="noopener" class="nav-instagram" aria-label="Instagram">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+        <circle cx="12" cy="12" r="4.5"/>
+        <circle cx="17.5" cy="6.5" r=".8" fill="currentColor" stroke="none"/>
+      </svg>
+    </a>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#concept">concept</a></li>
+    <li><a href="#menu">menu</a></li>
+    <li><a href="#story">story</a></li>
+    <li><a href="#gallery">gallery</a></li>
+    <li><a href="#access">access</a></li>
+    <li><a href="#contact">contact</a></li>
+  </ul>
+  <button class="nav-toggle" id="navToggle" aria-label="メニュー">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="nav-drawer" id="navDrawer">
+  <a href="#concept" class="drawer-link">concept</a>
+  <a href="#menu" class="drawer-link">menu</a>
+  <a href="#story" class="drawer-link">story</a>
+  <a href="#gallery" class="drawer-link">gallery</a>
+  <a href="#access" class="drawer-link">access</a>
+  <a href="#contact" class="drawer-link">contact</a>
+</div>
+
+<div class="season-badge" id="seasonBadge"></div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-grain"></div>
+  <div class="hero-content">
+    <span class="hero-en">Nasu · Tochigi</span>
+    <h1 class="hero-title">kanatta</h1>
+    <p class="hero-catch">那須の恵みを、大切に込めて。</p>
+    <div class="hero-line"></div>
+  </div>
+  <div class="scroll-hint">
+    <span>scroll</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</div>
+
+<!-- CONCEPT -->
+<div class="concept-bg" id="concept">
+  <div class="concept-grid">
+    <div class="concept-text r">
+      <span class="sec-label">concept</span>
+      <h2 class="sec-title">ただいま、と<br>言いたくなる場所</h2>
+      <div class="sec-rule"></div>
+      <p>那須の大自然の中にポツンと建つ、<br>
+        どこか「帰りたくなる」ような<br>
+        温かみのあるカフェ。<br><br>
+        ただ景色が美しいだけでなく、<br>
+        この土地が育んだ豊かな恵みを<br>
+        五感すべてで味わい、<br>
+        静かに思考を深められる<br>
+        上質な時間を提供します。</p>
+    </div>
+    <div class="concept-img r">photo</div>
+  </div>
+</div>
+
+<!-- MENU -->
+<div class="sec" id="menu">
+  <span class="sec-label r">menu</span>
+  <h2 class="sec-title r">那須の食材を、<br>丁寧に。</h2>
+  <div class="sec-rule r"></div>
+  <div class="menu-grid">
+    <div class="menu-card r">
+      <span class="menu-cat">morning</span>
+      <div class="menu-name">朝のプレート</div>
+      <div class="menu-desc">那須産の新鮮な卵と季節の野菜を使った、<br>一日の始まりにふさわしいひと皿。</div>
+      <span class="menu-price">¥1,600</span>
+    </div>
+    <div class="menu-card r">
+      <span class="menu-cat">lunch</span>
+      <div class="menu-name">本日のランチ</div>
+      <div class="menu-desc">地元農家から届いた食材を、<br>その日の旬に合わせて丁寧に仕立てます。</div>
+      <span class="menu-price">¥1,800〜</span>
+    </div>
+    <div class="menu-card r">
+      <span class="menu-cat">dessert</span>
+      <div class="menu-name">季節のタルト</div>
+      <div class="menu-desc">那須の農園から届いたフルーツを使った、<br>手作りのタルト。</div>
+      <span class="menu-price">¥800</span>
+    </div>
+    <div class="menu-card r">
+      <span class="menu-cat">drinks</span>
+      <div class="menu-name">自家製レモネード</div>
+      <div class="menu-desc">摘みたてハーブを合わせた、<br>さわやかな那須の一杯。</div>
+      <span class="menu-price">¥700</span>
+    </div>
+  </div>
+</div>
+
+<!-- STORY -->
+<div class="story-bg" id="story">
+  <div class="story-inner">
+    <span class="sec-label r">our story</span>
+    <h2 class="sec-title r">二人が、<br>ここで作りたかったもの。</h2>
+    <div class="sec-rule r"></div>
+    <blockquote class="story-quote r">
+      「本当に好きで、食べたい。<br>
+      そう心の底から思っている人に、<br>
+      届けたい料理がある。」
+    </blockquote>
+    <p class="r">
+      那須の土地に惚れ込み、<br>
+      この場所でしか生まれない料理を作りたいと、<br>
+      二人はここに根を下ろしました。<br><br>
+      食材と向き合い、土地と向き合い、<br>
+      訪れてくれるお客様と向き合う。<br><br>
+      それが、kanattaという場所です。
+    </p>
+  </div>
+</div>
+
+<!-- GALLERY -->
+<div class="sec" id="gallery">
+  <span class="sec-label r">gallery</span>
+  <h2 class="sec-title r">kanattaの<br>風景。</h2>
+  <div class="sec-rule r"></div>
+  <div class="gallery-grid">
+    <div class="gal-item r"></div>
+    <div class="gal-item r"></div>
+    <div class="gal-item r"></div>
+    <div class="gal-item r"></div>
+    <div class="gal-item r"></div>
+  </div>
+</div>
+
+<!-- ACCESS -->
+<div class="sec" id="access">
+  <span class="sec-label r">access</span>
+  <h2 class="sec-title r">那須へ、<br>いらっしゃいませ。</h2>
+  <div class="sec-rule r"></div>
+  <div class="access-grid r">
+    <div class="access-map">map</div>
+    <dl class="access-dl">
+      <dt>address</dt>
+      <dd>栃木県那須郡那須町<br>（詳細は近日公開予定）</dd>
+      <dt>hours</dt>
+      <dd>10:00 — 17:00<br>水・木曜定休</dd>
+      <dt>parking</dt>
+      <dd>あり（無料）</dd>
+      <dt>instagram</dt>
+      <dd>@kanatta_nasu</dd>
+    </dl>
+  </div>
+</div>
+
+<!-- CONTACT -->
+<div class="contact-bg" id="contact">
+  <div class="contact-inner">
+    <span class="sec-label r">reservation</span>
+    <h2 class="sec-title r">ご予約・<br>お問い合わせ</h2>
+    <div class="sec-rule r"></div>
+    <form class="form r" onsubmit="return false">
+      <div class="fg">
+        <label>お名前</label>
+        <input type="text" placeholder="山田 太郎">
+      </div>
+      <div class="fg">
+        <label>メールアドレス</label>
+        <input type="email" placeholder="email@example.com">
+      </div>
+      <div class="fg">
+        <label>ご来店希望日</label>
+        <input type="text" placeholder="例：2025年10月15日（水）">
+      </div>
+      <div class="fg">
+        <label>人数</label>
+        <select>
+          <option>1名</option>
+          <option>2名</option>
+          <option>3〜4名</option>
+          <option>5名以上</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>メッセージ</label>
+        <textarea placeholder="アレルギーや特別なご要望などをお知らせください。"></textarea>
+      </div>
+      <button type="button" class="send-btn">送 信</button>
+    </form>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span class="ft-logo">kanatta</span>
+  <div class="ft-sns">
+    <a href="https://www.instagram.com/kanatta_nasu/" target="_blank" rel="noopener">Instagram</a>
+  </div>
+  <p class="ft-copy">© 2025 kanatta. All rights reserved.</p>
+</footer>
+
+<script>
+  // ── 季節カラーパレット定義 ──────────────────────────────
+  // ── 季節カラーパレット定義（彩度・コントラスト強め） ──
+  const SEASONS = [
+    {
+      name: 'spring', label: '春 · spring',
+      // チューリップ・ヤシオツツジ — 鮮やかなローズピンク
+      ivory:'#FDE8EE', ecru:'#F8C8D8', honey:'#D04070',
+      sage:'#5EA87A',  deep:'#300818', mid:'#A02858', light:'#E080A0',
+    },
+    {
+      name: 'summer', label: '夏 · summer',
+      // ひまわり・ラベンダー — 鮮やかなゴールドと青緑
+      ivory:'#EDF7ED', ecru:'#CCE8CC', honey:'#C88C00',
+      sage:'#2878A0',  deep:'#0A1C10', mid:'#186840', light:'#50A870',
+    },
+    {
+      name: 'autumn', label: '秋 · autumn',
+      // コスモス・紅葉 — 深みのある朱赤とテラコッタ
+      ivory:'#F8EAE0', ecru:'#F0C898', honey:'#C05018',
+      sage:'#9A6830',  deep:'#280800', mid:'#904020', light:'#D07840',
+    },
+    {
+      name: 'winter', label: '冬 · winter',
+      // 薪ストーブ・クリスマスローズ — 深いグレーブルーと温かみ
+      ivory:'#EAF0F8', ecru:'#C8D8EC', honey:'#406890',
+      sage:'#3A6858',  deep:'#0C1820', mid:'#304860', light:'#6888A8',
+    }
+  ];
+
+  // ── 色補間ユーティリティ ───────────────────────────────
+  function h2r(h) {
+    return [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
+  }
+  function mix(h1, h2, t) {
+    const [r1,g1,b1]=h2r(h1), [r2,g2,b2]=h2r(h2);
+    const r=r1+(r2-r1)*t|0, g=g1+(g2-g1)*t|0, b=b1+(b2-b1)*t|0;
+    return '#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');
+  }
+  function mixPalette(a, b, t) {
+    const keys = ['ivory','ecru','honey','sage','deep','mid','light'];
+    const out = {};
+    keys.forEach(k => out[k] = mix(a[k], b[k], t));
+    return out;
+  }
+
+  // ── CSS変数を更新 ─────────────────────────────────────
+  const root  = document.documentElement;
+  const badge = document.getElementById('seasonBadge');
+
+  function applyPalette(p, label) {
+    root.style.setProperty('--ivory',       p.ivory);
+    root.style.setProperty('--ecru',        p.ecru);
+    root.style.setProperty('--honey',       p.honey);
+    root.style.setProperty('--sage',        p.sage);
+    root.style.setProperty('--deep',        p.deep);
+    root.style.setProperty('--mid',         p.mid);
+    root.style.setProperty('--light',       p.light);
+    root.style.setProperty('--season-base', p.ivory);
+    if (label !== undefined) badge.textContent = label;
+  }
+
+  function ease(t) { return t < .5 ? 2*t*t : -1+(4-2*t)*t; }
+
+  // ── 春→夏→秋→冬を7秒ごとに自動ループ ───────────────
+  let fromIdx = 0;   // 遷移元の季節（0〜3）
+  let toIdx   = 0;   // 遷移先の季節（0〜3）
+  let blendT  = 1;   // 遷移の進行度（0→1）
+  let rafId   = null;
+
+  // スクロール中は遷移をゆっくりに
+  let isScrolling = false;
+  let scrollTimer = null;
+  window.addEventListener('scroll', () => {
+    isScrolling = true;
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(() => { isScrolling = false; }, 400);
+  }, { passive: true });
+
+  function animateSeason() {
+    if (blendT >= 0.998) {
+      blendT = 1;
+      fromIdx = toIdx;
+      applyPalette(SEASONS[fromIdx], SEASONS[fromIdx].label);
+      badge.classList.add('visible');
+      rafId = null;
+      return;
+    }
+    // スクロール中は速さを1/8に落とす
+    const speed = isScrolling ? 0.004 : 0.030;
+    blendT += (1 - blendT) * speed;
+    applyPalette(mixPalette(SEASONS[fromIdx], SEASONS[toIdx], ease(blendT)));
+    rafId = requestAnimationFrame(animateSeason);
+  }
+
+  function advanceSeason() {
+    fromIdx = toIdx;
+    toIdx   = (toIdx + 1) % 4;
+    blendT  = 0;
+    if (!rafId) rafId = requestAnimationFrame(animateSeason);
+  }
+
+  // 初期適用（春から始まる）
+  applyPalette(SEASONS[0]);
+  badge.textContent = SEASONS[0].label;
+  badge.classList.add('visible');
+
+  // 7秒ごとに次の季節へ
+  setInterval(advanceSeason, 7000);
+
+  // ── nav スクロール ────────────────────────────────────
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 60);
+  }, { passive: true });
+
+  // ── hamburger ────────────────────────────────────────
+  const toggle = document.getElementById('navToggle');
+  const drawer = document.getElementById('navDrawer');
+  toggle.addEventListener('click', () => {
+    const open = drawer.classList.toggle('open');
+    toggle.classList.toggle('open', open);
+    document.body.style.overflow = open ? 'hidden' : '';
+  });
+  drawer.querySelectorAll('.drawer-link').forEach(a => {
+    a.addEventListener('click', () => {
+      drawer.classList.remove('open');
+      toggle.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  });
+
+  // ── reveal on scroll ─────────────────────────────────
+  const els = document.querySelectorAll('.r');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('on'), i * 70);
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+  els.forEach(el => io.observe(el));
+</script>
+
+<script>
+// ── 光だまりがふんわり駆け巡るアニメーション ────────────
+(function () {
+  const pools = [
+    {
+      el: document.querySelector('.pool-a'),
+      cx: 55, cy: 38, ax: 28, ay: 22,
+      fx: [0.0048, 0.0029], fy: [0.0037, 0.0056],
+      px: [0.0, 1.8], py: [0.7, 2.5],
+      w: 72, h: 58,
+      col: 'rgba(255,228,200,{a})',
+    },
+    {
+      el: document.querySelector('.pool-b'),
+      cx: 35, cy: 62, ax: 22, ay: 26,
+      fx: [0.0034, 0.0058], fy: [0.0051, 0.0026],
+      px: [1.2, 3.1], py: [2.3, 0.4],
+      w: 60, h: 68,
+      col: 'rgba(250,210,175,{a})',
+    },
+    {
+      el: document.querySelector('.pool-c'),
+      cx: 62, cy: 65, ax: 20, ay: 18,
+      fx: [0.0063, 0.0041], fy: [0.0028, 0.0068],
+      px: [2.2, 0.9], py: [1.5, 3.6],
+      w: 52, h: 54,
+      col: 'rgba(255,238,215,{a})',
+    },
+  ];
+
+  let f = 0;  // フレームカウンタ
+
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+  function tick() {
+    f++;
+    pools.forEach((p, i) => {
+      // 2つのsin/cosを重ねて非周期的な動き
+      const x = p.cx
+        + p.ax * Math.sin(f * p.fx[0] + p.px[0])
+        + p.ax * 0.38 * Math.cos(f * p.fx[1] + p.px[1]);
+      const y = p.cy
+        + p.ay * Math.cos(f * p.fy[0] + p.py[0])
+        + p.ay * 0.42 * Math.sin(f * p.fy[1] + p.py[1]);
+
+      // 呼吸（各プールで違う周期）
+      const breathe = 0.55 + 0.45 * Math.sin(f * 0.0055 + i * 2.1);
+
+      const cx = clamp(x, 8, 92).toFixed(1);
+      const cy = clamp(y, 8, 92).toFixed(1);
+      const inner = p.col.replace('{a}', breathe.toFixed(3));
+      const outer = p.col.replace('{a}', (breathe * 0.35).toFixed(3));
+
+      p.el.style.background =
+        `radial-gradient(ellipse ${p.w}% ${p.h}% at ${cx}% ${cy}%, ${inner} 0%, ${outer} 45%, transparent 70%)`;
+    });
+    requestAnimationFrame(tick);
+  }
+
+  requestAnimationFrame(tick);
+})();
+</script>
+
+<script>
+// ── 花びら：風に囁かれてふんわりと舞う ───────────────────
+(function () {
+  const cv  = document.getElementById('petalCanvas');
+  const ctx = cv.getContext('2d');
+  let W, H;
+
+  function resize() {
+    W = cv.width  = window.innerWidth;
+    H = cv.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // 季節ごとの花びらカラー
+  const PETAL_COLORS = {
+    spring: ['#F4A8BC','#F8C8D8','#FFFFFF','#EAB0CC','#FDE0EA'],
+    summer: ['#F4D060','#FFFFFF','#C8E870','#F8E898','#A8D890'],
+    autumn: ['#E08840','#D06020','#E8C040','#C85030','#F0A870'],
+    winter: ['#FFFFFF','#EEF2FA','#D8E8F8','#F8FBFF','#DDEEF8'],
+  };
+
+  function getCurrentColors() {
+    // seasonBadgeのテキストから季節を判定
+    const label = document.getElementById('seasonBadge').textContent;
+    if (label.includes('spring')) return PETAL_COLORS.spring;
+    if (label.includes('summer')) return PETAL_COLORS.summer;
+    if (label.includes('autumn')) return PETAL_COLORS.autumn;
+    if (label.includes('winter')) return PETAL_COLORS.winter;
+    return PETAL_COLORS.spring;
+  }
+
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function rnd(n) { return Math.random() * n; }
+
+  // 花びらを生成
+  function newPetal() {
+    return {
+      x: rnd(W * 1.2) - W * 0.1,
+      y: rnd(H * 0.3) - 40,          // 上から少しランダムな位置で生まれる
+      vx: (Math.random() - 0.4) * 0.6,
+      vy: rnd(0.5) + 0.3,
+      rot: rnd(Math.PI * 2),
+      rotV: (Math.random() - 0.5) * 0.018,
+      sw: rnd(Math.PI * 2),           // 横揺れの位相
+      swSpeed: rnd(0.012) + 0.006,    // 横揺れの速さ
+      swAmt: rnd(1.4) + 0.5,          // 横揺れの幅
+      w: rnd(5) + 4,                  // 花びらの幅
+      h: rnd(8) + 6,                  // 花びらの高さ
+      alpha: 0,
+      maxAlpha: rnd(0.45) + 0.25,
+      col: pick(getCurrentColors()),
+      alive: true,
+    };
+  }
+
+  // 花びらの形を描く（ベジェ曲線で自然なカーブ）
+  function drawPetal(p) {
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rot);
+    ctx.globalAlpha = Math.max(0, p.alpha);
+    ctx.fillStyle = p.col;
+    ctx.shadowColor = p.col;
+    ctx.shadowBlur = 4;
+    ctx.beginPath();
+    ctx.moveTo(0, -p.h);
+    ctx.bezierCurveTo( p.w,  -p.h * 0.4,  p.w * 0.9,  p.h * 0.3,  0,  p.h * 0.55);
+    ctx.bezierCurveTo(-p.w * 0.9,  p.h * 0.3, -p.w, -p.h * 0.4,  0, -p.h);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  let petals = [];
+  let frame  = 0;
+  const MAX  = 40;
+  const INTERVAL = 45;
+
+  // Story セクションが見えているときは花びらを止める
+  let storyVisible = false;
+  const storyEl = document.getElementById('story');
+  if (storyEl) {
+    new IntersectionObserver(entries => {
+      storyVisible = entries[0].isIntersecting;
+    }, { threshold: 0.15 }).observe(storyEl);
+  }
+
+  function tick() {
+    frame++;
+    ctx.clearRect(0, 0, W, H);
+
+    // Story 表示中はスポーン停止
+    if (!storyVisible && petals.length < MAX && frame % INTERVAL === 0) {
+      petals.push(newPetal());
+    }
+
+    petals.forEach(p => {
+      // 動き
+      p.sw  += p.swSpeed;
+      p.x   += p.vx + Math.sin(p.sw) * p.swAmt;
+      p.y   += p.vy;
+      p.rot += p.rotV;
+
+      // Story表示中はすぐ消える、それ以外はフェードイン
+      if (storyVisible) {
+        p.alpha -= 0.007;
+      } else {
+        if (p.alpha < p.maxAlpha) p.alpha += 0.008;
+        if (p.y > H * 0.78) p.alpha -= 0.006;
+      }
+
+      // 画面外に出たら削除
+      if (p.y > H + 20 || p.alpha < -0.02) p.alive = false;
+
+      drawPetal(p);
+    });
+
+    petals = petals.filter(p => p.alive);
+    requestAnimationFrame(tick);
+  }
+
+  requestAnimationFrame(tick);
+})();
+</script>
+
+
+</body>
+</html>
